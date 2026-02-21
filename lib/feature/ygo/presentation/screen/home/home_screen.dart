@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ygo_hub/feature/ygo/presentation/screen/home/bloc/card_bloc.dart';
+import 'package:ygo_hub/feature/ygo/presentation/screen/home/bloc/card_state.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -12,68 +15,107 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: Color(0xFF0e121a),
         scrolledUnderElevation: 0.0,
       ),
-      body: Column(
-        children: [
-          Container(
-            color: Color(0xFF0e121a),
-            child: Padding(
-              padding: EdgeInsetsGeometry.symmetric(
-                horizontal: 16,
-                vertical: 20,
-              ),
-              child: Column(
-                children: [
-                  CustomSearchBar(),
-                  SizedBox(height: 10),
-                  FilledButton.icon(
-                    onPressed: () {},
-                    onLongPress: () {},
-                    label: Text('Attribute'),
-                    icon: Icon(Icons.stars),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'FOUND: 1,420 CARDS',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
+      body: BlocBuilder<CardBloc, CardState>(
+        builder: (context, state) {
+          // Usamos switch de expresión o validamos bien los casos
+          if (state is CardLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-              child: GridView.builder(
-                itemCount: 3,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 8,
-                  childAspectRatio: 0.7,
+          if (state is CardError) {
+            return const Center(
+              child: Text('Error', style: TextStyle(color: Colors.white)),
+            );
+          }
+
+          if (state is CardLoaded) {
+            return Column(
+              children: [
+                Container(
+                  color: const Color(0xFF0e121a),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      // CORREGIDO: EdgeInsets en lugar de EdgeInsetsGeometry
+                      horizontal: 16,
+                      vertical: 20,
+                    ),
+                    child: Column(
+                      children: [
+                        const CustomSearchBar(),
+                        const SizedBox(height: 10),
+                        FilledButton.icon(
+                          onPressed: () {},
+                          label: const Text('Attribute'),
+                          icon: const Icon(Icons.stars),
+                          onLongPress: () {},
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                itemBuilder: (context, index) {
-                  return CardItem();
-                },
-              ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'FOUND: ${state.cards.length} CARDS', // Dinámico: usa los datos del estado
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                    ), // CORREGIDO: EdgeInsets
+                    child: GridView.builder(
+                      itemCount:
+                          state.cards.length, // Usa el largo real de la lista
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8, // Añadido para que no se peguen
+                            childAspectRatio: 0.7,
+                          ),
+                      itemBuilder: (context, index) {
+                        final currentCard = state.cards[index];
+                        return CardItem(
+                          name: currentCard.name,
+                          imageUrl: currentCard.imageUrl,
+                        ); // Pasa la carta real
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+
+          // Caso inicial (CardInitial)
+          return const Center(
+            child: Text(
+              'Presiona para cargar',
+              style: TextStyle(color: Colors.white),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 }
 
 class CardItem extends StatelessWidget {
-  const CardItem({super.key});
+  final String name;
+  final String imageUrl;
+  const CardItem({super.key, required this.name, required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -87,20 +129,17 @@ class CardItem extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadiusGeometry.all(Radius.circular(10)),
-            child: Image.network(
-              'https://images.ygoprodeck.com/images/cards_cropped/1861630.jpg',
-              fit: BoxFit.fill,
-            ),
+            child: Image.network(imageUrl, fit: BoxFit.fill),
           ),
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              color: Colors.black.withValues(alpha: 0.5),
+              color: Colors.black.withValues(alpha: 0.7),
               width: double.infinity,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
-                  'Decode Talker',
+                  name,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
