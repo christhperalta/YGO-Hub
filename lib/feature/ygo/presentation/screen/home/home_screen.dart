@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:ygo_hub/core/utils/number_formatter.dart';
 import 'package:ygo_hub/feature/ygo/presentation/screen/home/bloc/card_bloc.dart';
 import 'package:ygo_hub/feature/ygo/presentation/screen/home/bloc/card_state.dart';
 
@@ -9,7 +11,6 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF070a10),
       appBar: AppBar(
         title: Text('YGO HUB', style: TextStyle(color: Colors.white)),
         backgroundColor: Color(0xFF0e121a),
@@ -61,7 +62,7 @@ class HomeScreen extends StatelessWidget {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'FOUND: ${state.cards.length} CARDS', // Dinámico: usa los datos del estado
+                      'FOUND:  ${NumberFormatter.formatNumber(state.cards.length)}  CARDS', // Dinámico: usa los datos del estado
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -119,37 +120,40 @@ class CardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey,
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadiusGeometry.all(Radius.circular(10)),
-            child: Image.network(imageUrl, fit: BoxFit.fill),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.7),
-              width: double.infinity,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  name,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+    return GestureDetector(
+      onTap: () => context.push('/details'),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey,
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadiusGeometry.all(Radius.circular(10)),
+              child: Image.network(imageUrl, fit: BoxFit.fill),
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.7),
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    name,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
