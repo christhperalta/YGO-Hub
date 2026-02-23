@@ -11,7 +11,8 @@ class CardLoading extends CardState {}
 
 class CardLoaded extends CardState {
   final List<CardYgo> cards;
-  CardLoaded(this.cards);
+  final List<CardYgo> filteredList;
+  CardLoaded(this.cards,this.filteredList);
 }
 
 class CardError extends CardState {

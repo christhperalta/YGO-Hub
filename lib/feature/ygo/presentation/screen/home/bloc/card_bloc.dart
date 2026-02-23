@@ -11,9 +11,29 @@ class CardBloc extends Bloc<CardEvent, CardState> {
       emit(CardLoading());
       try {
         final cards = await _getCardYgoUseCase();
-        emit(CardLoaded(cards));
+        final filteredList = cards;
+        emit(CardLoaded(cards, filteredList));
       } catch (e) {
         emit(CardError(e.toString()));
+      }
+    });
+
+    on<SearchCardEvent>((event, emit) {
+      final currentState = state;
+
+      if (currentState is CardLoaded) {
+        if (event.name.isEmpty) {
+          emit(CardLoaded(currentState.cards, currentState.cards));
+          return;
+        }
+
+        final searchTerm = event.name.toLowerCase();
+
+        final filteredList = currentState.cards.where((card) {
+          return card.name.toLowerCase().contains(searchTerm);
+        }).toList();
+
+        emit(CardLoaded(currentState.cards, filteredList));
       }
     });
   }

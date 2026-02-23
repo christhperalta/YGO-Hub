@@ -1,8 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ygo_hub/feature/ygo/presentation/screen/details/bloc/details_bloc.dart';
+import 'package:ygo_hub/feature/ygo/presentation/screen/details/bloc/details_event.dart';
+import 'package:ygo_hub/feature/ygo/presentation/screen/details/bloc/details_state.dart';
 
-class DetailsScreen extends StatelessWidget {
-  const DetailsScreen({super.key});
+class DetailsScreen extends StatefulWidget {
+  final int id;
+  const DetailsScreen({super.key, required this.id});
+
+  @override
+  State<DetailsScreen> createState() => _DetailsScreenState();
+}
+
+class _DetailsScreenState extends State<DetailsScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    context.read<DetailsBloc>().add(LoadDetailsEvent(id: widget.id));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,78 +32,120 @@ class DetailsScreen extends StatelessWidget {
           color: Colors.white,
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Center(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(height: 15),
-                CardImage(),
-                SizedBox(height: 30),
-                Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    border: BoxBorder.all(color: Colors.grey),
-                    borderRadius: BorderRadius.all(Radius.circular(20)),
-                  ),
+      body: BlocBuilder<DetailsBloc, DetailsState>(
+        builder: (context, state) {
+          if (state is DetailsLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is DetailsError) {
+            return Center(
+              child: Text(
+                'Error ${state.message}',
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
+          if (state is DetailsLoaded) {
+            final currentState = state.cardDetails;
+
+            return SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Center(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      CardRarityLevelInfo(),
-                      CardTitle(),
-                      Divider(height: 20),
-                      CardAttributeInfo(),
-                      Divider(height: 20),
-                      SizedBox(height: 10),
-                      CardDesc(),
-                      SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: StatCard(label: "Attack", value: "3000"),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: StatCard(label: "Defense", value: "2500"),
-                          ),
-                        ],
+                      SizedBox(height: 15),
+                      CardImage(
+                        imageUrl:
+                            currentState.imageUrl ??
+                            "https://images.ygoprodeck.com/images/cards/1861629.jpg",
                       ),
-                      SizedBox(height: 20),
-                      MarketPriceSection(
-                        price: "1.49",
-                        tcg: "UNLIMITED",
-                        ocg: "UNLIMITED",
+                      SizedBox(height: 30),
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: BoxBorder.all(color: Colors.grey),
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                        ),
+                        child: Column(
+                          children: [
+                            CardRarityLevelInfo(
+                              type: currentState.type ?? '',
+                              starQuantity: currentState.level ?? 0,
+                            ),
+                            CardTitle(
+                              name: currentState.name ?? '',
+                              level: currentState.level ?? 0,
+                            ),
+                            Divider(height: 20),
+                            CardAttributeInfo(),
+                            Divider(height: 20),
+                            SizedBox(height: 10),
+                            CardDesc(desc: currentState.desc ?? ''),
+                            SizedBox(height: 20),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: StatCard(
+                                    label: "Attack",
+                                    value: currentState.atk ?? 0,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: StatCard(
+                                    label: "Defense",
+                                    value: currentState.def ?? 0,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 20),
+                            MarketPriceSection(
+                              price: currentState.cardmarketPrice ?? '',
+                              tcg: "UNLIMITED",
+                              ocg: "UNLIMITED",
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
+            );
+          }
+          return const Center(
+            child: Text(
+              'Presiona para cargar',
+              style: TextStyle(color: Colors.white),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 }
 
 class CardImage extends StatelessWidget {
-  const CardImage({super.key});
+  final String imageUrl;
+  const CardImage({super.key, required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
       aspectRatio: 3 / 4,
-      child: Image.network(
-        'https://images.ygoprodeck.com/images/cards/1861629.jpg',
-        fit: BoxFit.fill,
-      ),
+      child: Image.network(imageUrl, fit: BoxFit.fill),
     );
   }
 }
 
 class CardTitle extends StatelessWidget {
-  const CardTitle({super.key});
+  final String name;
+  final int level;
+  const CardTitle({super.key, required this.name, required this.level});
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +157,7 @@ class CardTitle extends StatelessWidget {
           width: 200,
 
           child: Text(
-            'BLUE-EYES WHITE DRAGON',
+            name.toUpperCase(),
             style: TextStyle(
               fontSize: 32,
               color: Colors.white,
@@ -109,7 +168,7 @@ class CardTitle extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Text('LEVEL 8', style: TextStyle(color: Colors.grey)),
+          child: Text('LEVEL $level', style: TextStyle(color: Colors.grey)),
         ),
       ],
     );
@@ -117,7 +176,13 @@ class CardTitle extends StatelessWidget {
 }
 
 class CardRarityLevelInfo extends StatelessWidget {
-  const CardRarityLevelInfo({super.key});
+  final String type;
+  final int starQuantity;
+  const CardRarityLevelInfo({
+    super.key,
+    required this.starQuantity,
+    required this.type,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +191,7 @@ class CardRarityLevelInfo extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'ULTRA RARE',
+          type.toUpperCase(),
           style: TextStyle(
             fontSize: 18,
             color: Color(0XFF2054bd),
@@ -137,7 +202,7 @@ class CardRarityLevelInfo extends StatelessWidget {
         SizedBox(
           child: Row(
             children: [
-              for (int i = 0; i < 8; i++)
+              for (int i = 0; i < starQuantity; i++)
                 Icon(Icons.star_rounded, color: Colors.amber),
             ],
           ),
@@ -148,12 +213,13 @@ class CardRarityLevelInfo extends StatelessWidget {
 }
 
 class CardDesc extends StatelessWidget {
-  const CardDesc({super.key});
+  final String desc;
+  const CardDesc({super.key, required this.desc});
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      '2+ Effect Monsters Gains 500 ATK for each monster it points to. When your opponent activates a card or effect that targets a card(s) you control (Quick Effect): You can Tribute 1 monster this card points to; negate the activation, and if you do, destroy that card.',
+      desc,
       style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
     );
   }
@@ -215,7 +281,7 @@ class CardAttributeInfo extends StatelessWidget {
 
 class StatCard extends StatelessWidget {
   final String label;
-  final String value;
+  final int value;
 
   const StatCard({super.key, required this.label, required this.value});
 
@@ -226,7 +292,7 @@ class StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF111827),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,7 +308,7 @@ class StatCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            value,
+            value.toString(),
             style: const TextStyle(
               fontSize: 28,
               color: Colors.white,

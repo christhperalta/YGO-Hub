@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:ygo_hub/core/router/route.dart';
 import 'package:ygo_hub/di/di.dart';
+import 'package:ygo_hub/feature/ygo/presentation/screen/details/bloc/details_bloc.dart';
 import 'package:ygo_hub/feature/ygo/presentation/screen/home/bloc/card_bloc.dart';
 import 'package:ygo_hub/feature/ygo/presentation/screen/home/bloc/card_event.dart';
 
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
           create: (context) =>
               GetIt.instance.get<CardBloc>()..add(LoadCardsEvent()),
         ),
+        BlocProvider(create: (context) => GetIt.instance.get<DetailsBloc>()),
       ],
       child: MaterialApp.router(
         theme: ThemeData(scaffoldBackgroundColor: const Color(0xFF070a10)),

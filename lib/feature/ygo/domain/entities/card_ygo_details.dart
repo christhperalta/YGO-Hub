@@ -1,20 +1,26 @@
 class CardYgoDetails {
   final int? id;
-  final String name;
-  final String desc;
-  final int? atk = 0;
-  final int? def = 0;
-  final int? level = 0;
+  final String? name;
+  final String? desc;
+  final String? type;
+  final int? atk;
+  final int? def;
+  final int? level;
   final String? attribute;
-  final double? cardmarketPrice;
+  final String? cardmarketPrice;
   final String? imageUrl;
 
   CardYgoDetails({
     required this.id,
     required this.name,
+    this.type,
     required this.desc,
     required this.attribute,
     required this.cardmarketPrice,
-    this.imageUrl,
+    this.atk,
+    this.def,
+    this.level,
+    this.imageUrl, 
+    
   });
 }

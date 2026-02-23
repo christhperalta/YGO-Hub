@@ -1,10 +1,12 @@
 
+import 'package:ygo_hub/feature/ygo/data/models/card_ygo_details_models.dart';
 import 'package:ygo_hub/feature/ygo/data/models/card_ygo_models.dart';
 import 'package:dio/dio.dart';
 
 
 abstract class CardYgoDatasource {
    Future<List<CardYgoModels>> getCards();
+   Future<CardYgoDetailsModels> getCardById(int id );
 }
 
 class RemoteCardYgoDatasourceImpl implements CardYgoDatasource {
@@ -27,5 +29,26 @@ class RemoteCardYgoDatasourceImpl implements CardYgoDatasource {
      throw Exception('Error en la red ${e.message}');
    } 
   }
+  
+ @override
+Future<CardYgoDetailsModels> getCardById(int id) async {
+  try {
+    final response = await dio.get(
+      'cardinfo.php',
+      queryParameters: {'id': id},
+    );
+
+    final List<dynamic> data = response.data['data'];
+    if (data.isEmpty) {
+      throw Exception('Card not found');
+    }
+
+    return CardYgoDetailsModels.fromJson(data[0]);
+
+  } on DioException catch (e) {
+    throw Exception('Network error: ${e.message}');
+  }
+}
+  
   
 }

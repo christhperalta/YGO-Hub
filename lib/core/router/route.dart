@@ -14,7 +14,8 @@ final GoRouter router = GoRouter(
     GoRoute(
       path: '/details',
       builder: (context, state) {
-        return const DetailsScreen();
+        final id = state.extra as int;
+        return DetailsScreen(id: id);
       },
     ),
   ],

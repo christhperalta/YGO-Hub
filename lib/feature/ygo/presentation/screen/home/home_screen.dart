@@ -1,8 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ygo_hub/core/utils/number_formatter.dart';
 import 'package:ygo_hub/feature/ygo/presentation/screen/home/bloc/card_bloc.dart';
+import 'package:ygo_hub/feature/ygo/presentation/screen/home/bloc/card_event.dart';
 import 'package:ygo_hub/feature/ygo/presentation/screen/home/bloc/card_state.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -44,12 +46,12 @@ class HomeScreen extends StatelessWidget {
                       children: [
                         const CustomSearchBar(),
                         const SizedBox(height: 10),
-                        FilledButton.icon(
-                          onPressed: () {},
-                          label: const Text('Attribute'),
-                          icon: const Icon(Icons.stars),
-                          onLongPress: () {},
-                        ),
+                        // FilledButton.icon(
+                        //   onPressed: () {},
+                        //   label: const Text('Attribute'),
+                        //   icon: const Icon(Icons.stars),
+                        //   onLongPress: () {},
+                        // ),
                       ],
                     ),
                   ),
@@ -76,24 +78,37 @@ class HomeScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                     ), // CORREGIDO: EdgeInsets
-                    child: GridView.builder(
-                      itemCount:
-                          state.cards.length, // Usa el largo real de la lista
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 8,
-                            mainAxisSpacing: 8, // Añadido para que no se peguen
-                            childAspectRatio: 0.7,
+                    child: state.filteredList.isEmpty
+                        ? Center(
+                            child: Text(
+                              'Not Found',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                            ),
+                          )
+                        : GridView.builder(
+                            itemCount: state
+                                .filteredList
+                                .length, // Usa el largo real de la lista
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  crossAxisSpacing: 8,
+                                  mainAxisSpacing:
+                                      8, // Añadido para que no se peguen
+                                  childAspectRatio: 0.7,
+                                ),
+                            itemBuilder: (context, index) {
+                              final currentCard = state.filteredList[index];
+                              return CardItem(
+                                id: currentCard.id,
+                                name: currentCard.name,
+                                imageUrl: currentCard.imageUrl,
+                              ); // Pasa la carta real
+                            },
                           ),
-                      itemBuilder: (context, index) {
-                        final currentCard = state.cards[index];
-                        return CardItem(
-                          name: currentCard.name,
-                          imageUrl: currentCard.imageUrl,
-                        ); // Pasa la carta real
-                      },
-                    ),
                   ),
                 ),
               ],
@@ -114,14 +129,20 @@ class HomeScreen extends StatelessWidget {
 }
 
 class CardItem extends StatelessWidget {
+  final int id;
   final String name;
   final String imageUrl;
-  const CardItem({super.key, required this.name, required this.imageUrl});
+  const CardItem({
+    super.key,
+    required this.name,
+    required this.imageUrl,
+    required this.id,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.push('/details'),
+      onTap: () => context.push('/details', extra: id),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.grey,
@@ -132,7 +153,13 @@ class CardItem extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadiusGeometry.all(Radius.circular(10)),
-              child: Image.network(imageUrl, fit: BoxFit.fill),
+              child: CachedNetworkImage(
+                imageUrl: imageUrl,
+                fit: BoxFit.fill,
+                placeholder: (context, url) =>
+                    Container(color: Colors.grey[900]),
+                errorWidget: (context, url, error) => Icon(Icons.error),
+              ),
             ),
             Align(
               alignment: Alignment.bottomCenter,
@@ -165,11 +192,18 @@ class CustomSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      style: TextStyle(color: Colors.white),
+      onChanged: (value) {
+        context.read<CardBloc>().add(SearchCardEvent(name: value));
+      },
       decoration: InputDecoration(
         hintText: 'Search card',
-        prefixIcon: Icon(Icons.search),
+        hintStyle: TextStyle(color: Colors.white),
+
+        prefixIcon: Icon(Icons.search, color: Colors.white),
         filled: true,
         fillColor: Color(0xFF070a10),
+
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
