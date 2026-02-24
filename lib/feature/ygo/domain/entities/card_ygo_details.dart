@@ -7,6 +7,7 @@ class CardYgoDetails {
   final int? def;
   final int? level;
   final String? attribute;
+  final String? race;
   final String? cardmarketPrice;
   final String? imageUrl;
 
@@ -21,6 +22,7 @@ class CardYgoDetails {
     this.def,
     this.level,
     this.imageUrl, 
+    this.race, 
     
   });
 }

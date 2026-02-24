@@ -12,6 +12,7 @@ class CardYgoDetailsModels extends CardYgoDetails {
     required super.level,
     required super.cardmarketPrice,
     required super.imageUrl,
+    required super.race,
   });
 
   factory CardYgoDetailsModels.fromJson(Map<String, dynamic> json) {
@@ -32,6 +33,7 @@ class CardYgoDetailsModels extends CardYgoDetails {
           : "0.00",
       imageUrl: images.isNotEmpty ? images[0]['image_url'] : '',
       level: json['level'],
+      race: json['race'],
     );
   }
 }

@@ -80,7 +80,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
                               level: currentState.level ?? 0,
                             ),
                             Divider(height: 20),
-                            CardAttributeInfo(),
+                            CardAttributeInfo(
+                              attribute: currentState.attribute ?? '',
+                              race: currentState.race ?? '',
+                            ),
                             Divider(height: 20),
                             SizedBox(height: 10),
                             CardDesc(desc: currentState.desc ?? ''),
@@ -226,7 +229,13 @@ class CardDesc extends StatelessWidget {
 }
 
 class CardAttributeInfo extends StatelessWidget {
-  const CardAttributeInfo({super.key});
+  final String attribute;
+  final String race;
+  const CardAttributeInfo({
+    super.key,
+    required this.attribute,
+    required this.race,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -235,20 +244,25 @@ class CardAttributeInfo extends StatelessWidget {
       child: Row(
         children: [
           // Icono
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFFFFC107), // amarillo
+          if (attribute.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: attribute == 'LIGHT'
+                    ? const Color(0xFFFFC107)
+                    : const Color.fromARGB(255, 33, 33, 33),
+              ),
+              child: attribute == 'LIGHT'
+                  ? const Icon(Icons.wb_sunny, size: 16, color: Colors.black)
+                  : const Icon(Icons.nightlight, size: 16, color: Colors.white),
             ),
-            child: const Icon(Icons.wb_sunny, size: 16, color: Colors.black),
-          ),
 
           const SizedBox(width: 10),
 
           // Texto atributo
-          const Text(
-            'LIGHT',
+          Text(
+            attribute,
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w600,
@@ -264,9 +278,9 @@ class CardAttributeInfo extends StatelessWidget {
           const SizedBox(width: 12),
 
           // Tipo de carta
-          const Expanded(
+          Expanded(
             child: Text(
-              '[ Dragon / Normal ]',
+              '[ $race ]',
               style: TextStyle(
                 color: Colors.white70,
                 fontWeight: FontWeight.w400,
