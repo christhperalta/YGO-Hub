@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ygo_hub/core/utils/number_formatter.dart';
@@ -7,6 +8,16 @@ import 'package:ygo_hub/feature/ygo/presentation/screen/home/bloc/card_bloc.dart
 import 'package:ygo_hub/feature/ygo/presentation/screen/home/bloc/card_event.dart';
 import 'package:ygo_hub/feature/ygo/presentation/screen/home/bloc/card_state.dart';
 
+// For Material widgets
+
+/// {@template home_screen}
+/// A stateless widget that displays the home screen of the YGO Hub application.
+///
+/// This screen serves as the main entry point for users to navigate through
+/// the application's features and content related to Yu-Gi-Oh! trading cards.
+/// {@endtemplate}
+
+// ignore: invalid_widget_preview_application
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -187,6 +198,7 @@ class CardItem extends StatelessWidget {
 }
 
 class CustomSearchBar extends StatelessWidget {
+@Preview(name: 'HomeScreen')
   const CustomSearchBar({super.key});
 
   @override
